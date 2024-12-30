@@ -1,101 +1,197 @@
+'use client'
+import "./home.css";
 import Image from "next/image";
+import Mock from 'mockjs';
+import * as React from "react";
+import { useEffect, useState } from 'react';
+import {Divider,Button,Input, Listbox,
+  ListboxItem} from "@nextui-org/react";
+import { hash } from "crypto";
 
+interface  Items  {
+  hash:string,
+  from:string,
+  to:string,
+}
+
+const defaultList:Items[] = generateArray()
+ 
+
+function generateRandomString(length:number, startsWithDigit:boolean) {
+  const digits = '0123456789';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+
+  // 如果要求以数字开头
+  if (startsWithDigit) {
+    result += digits.charAt(Math.floor(Math.random() * digits.length));
+    // 剩余长度的字符可以从更广泛的字符集中选择
+    for (let i = 1; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  } else {
+    // 如果不要求以数字开头，但长度和字符集仍然需要遵守
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    // 这里我们本不需要这个else块，因为上面的if已经处理了startsWithDigit为true的情况，
+    // 但为了保持代码的清晰性，我还是保留了它，并注释了相关说明。
+  }
+
+  // 确保生成的字符串不包含特殊字符（虽然我们的字符集已经排除了这些可能性）
+  // 在这个特定例子中，我们其实不需要这一步，因为chars集合已经限制了可能的字符。
+  // 但为了展示如何检查并移除特殊字符（如果字符集允许的话），我还是保留了下面的代码（虽然它不会被执行到）。
+  /*
+  result = result.replace(/[^a-zA-Z0-9]/g, ''); // 移除所有非字母数字的字符
+  if (startsWithDigit && !/^\d/.test(result)) { // 如果要求以数字开头但结果不是，则重新生成
+    return generateRandomString(length, startsWithDigit);
+  }
+  // 注意：上面的重新生成逻辑在这个例子中实际上是不必要的，因为我们的字符集已经保证了这一点。
+  // 我保留它只是为了展示如何处理可能的问题。
+  */
+
+  return result;
+}
+
+function generateArray() {
+  const array = [];
+  for (let i = 0; i < 10; i++) {
+    array.push({
+      hash: generateRandomString(16, true),  // 以数字开头的16位字符串
+      from: generateRandomString(4, false)+'...'+generateRandomString(4, false), // 10位字符串（不要求以数字开头）
+      to: generateRandomString(4, false)+'...'+generateRandomString(4, false)   // 同上
+    });
+  }
+  return array;
+}
+
+
+ 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  
+  const [list, setList] = useState(defaultList);
+  useEffect(() => {
+    setInterval(()=>{
+      const next = generateArray()
+      setList(next)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    },1000)
+  }, []);
+  const renderList = (data:Items)=>{
+    return  <ListboxItem key={data.hash}  className="border-b-small">
+              <div className="flex justify-around">
+                <div className="blockHash text-current flex items-center">
+                  <span className="statusIcon icon-success"></span>
+                   <span>{data.hash}...</span>
+                </div>
+                <div className="blockHeight">
+                  <p>
+                    block: <span className="text-current">310516949</span>
+                  </p>
+                  <div className="flex items-center">
+                    <span className="text-current text-sm">{data.from}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 px-2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
+                    </svg>
+                    <span className="text-current text-sm">{data.to}</span>
+                  </div>
+                  
+                </div>
+                <div className="valueBox">
+                    <p className="flex">
+                      <Image 
+                      className="pr-2"
+                      src="/sol-logo.svg"
+                      alt="solLogo"
+                      width={19}
+                      height={19}
+                      priority>
+                      </Image>
+                      <span>Value (SOL):</span>
+                      <span className="pl-2"> 1.00034</span>
+                      </p>
+                      <p className="flex">
+                      <Image 
+                      className="pr-2"
+                      src="/sol-logo.svg"
+                      alt="solLogo"
+                      width={19}
+                      height={19}
+                      priority>
+                      </Image>
+                      <span>Fee (SOL):</span>
+                      <span className="pl-2"> 0.000005</span>
+                      </p>
+                  </div>
+              </div>
+            </ListboxItem>
+  }
+  return (
+    <div className="main">
+      <div className="homepageGradient">
+          <div className="options flex ">
+            <div className="flex ">
+              <div className="projectName">
+                VAULT
+              </div>
+              <div className="rounded-lg px-2 py-2 gap-2 bg-[#ffffff33] backdrop-blur-[15px] hidden sm:flex relative z-10">
+                <Image 
+                className="dark:invert"
+                src="/sol.png"
+                alt="solPriceLogo"
+                width={29}
+                height={19}
+                priority>
+
+                </Image>
+                <div className="not-italic font-normal text-[12px] leading-[16px] text-primarySolana-50 flex items-center">
+                  $189.83&nbsp;<span style={{color: 'rgb(71, 183, 23)'}}>+3.5%</span> 
+                <div data-orientation="vertical" role="none" className="shrink-0 bg-neutral2 w-[1px] inline-flex mx-3 h-4"></div>
+                <div className="inline" data-state="closed">Avg Fee: <span className="text-[#6BC1FF]">0.00004245 </span></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex  items-center space-x-4 pl-11 ">
+            <div>Docs</div>
+            <Divider orientation="vertical" />
+            <div>Tokens</div>
+            <Divider orientation="vertical" />
+            <div>Nfts</div>
+            </div>
+            <div className="flex flex-1 justify-end">
+             <Button color="primary" variant="shadow">
+                Connect Wallet
+              </Button>
+            </div>
+          </div>
+      </div>
+      <div className="content">
+        <div className="searchBox">
+          <p> Explore Solana Blockchain</p>
+          <div  className="w-full flex items-center">
+          <Input
+                key='primary'
+                color='primary'
+                placeholder="input tokens"
+                className="mr-10"
+              />
+               <Button color="primary"  >
+                Search Token
+              </Button>
+          </div>
+         
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+         <div className="w-full mt-10  border-small px-1 py-2 rounded-small border-default-200 dark:border-default-100">
+          <div className="titleWrap flex justify-between px-2 items-center ">
+            <p className="text-2xl font-bold">Network (Transactions) </p>
+            <p className="text-xl text-cyan-500">353,896,035,980</p>
+            <p className=" font-bold text-teal-500"> {`view all >`}</p>
+          </div>
+          <Listbox aria-label="Actions" >
+           {list.map(i=>renderList(i))}
+          </Listbox>
+        </div>
+      </div>
     </div>
   );
 }
