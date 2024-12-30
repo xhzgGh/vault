@@ -34,21 +34,8 @@ function generateRandomString(length:number, startsWithDigit:boolean) {
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    // 这里我们本不需要这个else块，因为上面的if已经处理了startsWithDigit为true的情况，
-    // 但为了保持代码的清晰性，我还是保留了它，并注释了相关说明。
+   
   }
-
-  // 确保生成的字符串不包含特殊字符（虽然我们的字符集已经排除了这些可能性）
-  // 在这个特定例子中，我们其实不需要这一步，因为chars集合已经限制了可能的字符。
-  // 但为了展示如何检查并移除特殊字符（如果字符集允许的话），我还是保留了下面的代码（虽然它不会被执行到）。
-  /*
-  result = result.replace(/[^a-zA-Z0-9]/g, ''); // 移除所有非字母数字的字符
-  if (startsWithDigit && !/^\d/.test(result)) { // 如果要求以数字开头但结果不是，则重新生成
-    return generateRandomString(length, startsWithDigit);
-  }
-  // 注意：上面的重新生成逻辑在这个例子中实际上是不必要的，因为我们的字符集已经保证了这一点。
-  // 我保留它只是为了展示如何处理可能的问题。
-  */
 
   return result;
 }
